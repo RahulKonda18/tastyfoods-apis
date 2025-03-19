@@ -236,6 +236,50 @@ app.get("/restaurants-list", authenticateToken, async (request, response) => {
   }
 });
 
+app.get("/visitors-count", async (request, response) => {
+  try {
+    // Query the MongoDB collection to find the document with the specified ID
+    const result = await client
+      .db("tasty_kitchens") // Replace with your database name
+      .collection("counter") // Replace with your collection name
+      .findOne({ id: "99" });
+
+    if (result) {
+      // Send the visitors count as the response
+      response.send({ visitors_count: result.visitors_count });
+    } else {
+      response.status(404).send({ error: "Counter document not found" });
+    }
+  } catch (error) {
+    console.error("Error fetching visitors count:", error);
+    response.status(500).send({ error: "Failed to fetch visitors count" });
+  }
+});
+
+app.get("/increment-counter", async (request, response) => {
+  try {
+    // Increment the visitors_count by 1
+    const result = await client
+      .db("tasty_kitchens") // Replace with your database name
+      .collection("counter") // Replace with your collection name
+      .findOneAndUpdate(
+        { id: "99" }, // Query by the document ID
+        { $inc: { visitors_count: 1 } }, // Increment visitors_count by 1
+        { returnDocument: "after" } // Return the updated document
+      );
+
+    if (result.visitors_count) {
+      // Send the updated visitors count as the response
+      response.send({ visitors_count: result.visitors_count });
+    } else {
+      response.status(404).send({ error: "Counter document not found" });
+    }
+  } catch (error) {
+    console.error("Error incrementing visitors count:", error);
+    response.status(500).send({ error: "Failed to increment visitors count" });
+  }
+});
+
 app.get("/", (req, res) => res.send("Everythings Good!"));
 
 app.listen(3000, () => console.log("Server is running!"));
